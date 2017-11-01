@@ -21,3 +21,18 @@ The output should be
 * `contact/index.html`
 * `blog/index.html`
 
+### Config File
+
+You can also add a config file named `rex.config.js`,
+This file merges with the cli options.
+Currently there are only 2 options.
+```js
+// rex.config.js
+
+module.exports = function() {
+  return {
+    directory: 'dist' // path to to serve
+    routes: ['/', '/contact', '/blog']
+  }
+}
+```
