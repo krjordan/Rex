@@ -13,8 +13,16 @@ caporal
   .version('0.0.2')
   .description('Prerender your single page app')
   .argument('[directory]', 'Directory your site lives in')
-  .option('--routes', 'List of routes to prerender', caporal.LIST)
-  .option('--port', 'Port used to run the build server', caporal.INT)
+  .option(
+    '--routes',
+    'List of routes to prerender - Default is "/"',
+    caporal.LIST
+  )
+  .option(
+    '--port',
+    'Port used to run the build server - Default is port 3000',
+    caporal.INT
+  )
   .action(async function(args, options, logger) {
     serve(args.directory, options.port);
     if (options.routes) {
