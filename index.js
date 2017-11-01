@@ -5,8 +5,10 @@ const superstatic = require('superstatic').server
 const shell = require('shelljs')
 const caporal = require('caporal')
 const fs = require('fs')
+const _ = require('lodash')
 
 let routes = []
+let config
 
 caporal
   .version('0.0.1')
@@ -15,18 +17,29 @@ caporal
   .option('--routes', 'List of routes to prerender', caporal.LIST)
   .action(async function(args, options, logger) {
     serve(args.directory)
-    if(options.routes) {
-      const staticFiles = options.routes.map(async (route, index) => {
-	const result = await go(options, route)
-	return await saveFile(args.directory, route, result)
+
+    // Check for rex.config.js file
+    if(fs.existsSync(path.join(process.cwd(), 'rex.config.js'))) {
+      const configFile = require(path.join(process.cwd(), 'rex.config.js'))
+      const configObject = configFile()
+      config = Object.assign({}, options, configObject)
+    }
+
+    config = _.mergeWith(config, options, args, mergeArrayValues)
+
+    // If flags were passed
+    if(config.routes) {
+      const staticFiles = config.routes.map(async (route) => {
+        const result = await go(config, route)
+        return await saveFile(config.directory, route, result)
       })
 
       await waitForStaticFiles(staticFiles)
       process.exit()
 
     } else {
-      const result = await go(options)
-      await saveFile(args.directory, '/', result)
+      const result = await go(config)
+      await saveFile(config.directory, '/', result)
       process.exit()
     }
   })
@@ -79,4 +92,10 @@ async function saveFile(directory, route = '', contents) {
 async function waitForStaticFiles(staticFiles) {
   return Promise.all(staticFiles)
     // .then(process.exit)
+}
+
+function mergeArrayValues(objValue, srcValue) {
+  if (_.isArray(objValue)) {
+      return objValue.concat(srcValue);
+    }
 }
